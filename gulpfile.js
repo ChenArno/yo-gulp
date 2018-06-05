@@ -124,7 +124,6 @@ gulp.task('serve', () => {
 
     gulp.watch([
       'app/*.html',
-      'app/**/*.html',
       'app/images/**/*',
       '.tmp/fonts/**/*'
     ]).on('change', reload);
@@ -133,6 +132,7 @@ gulp.task('serve', () => {
     gulp.watch('app/scripts/**/*.js', ['scripts']);
     gulp.watch('app/fonts/**/*', ['fonts']);
     gulp.watch('bower.json', ['wiredep', 'fonts']);
+    gulp.watch('app/**/*.html', ['html']);
   });
 });
 
