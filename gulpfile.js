@@ -5,6 +5,7 @@ const browserSync = require('browser-sync').create();
 const del = require('del');
 const wiredep = require('wiredep').stream;
 const runSequence = require('run-sequence');
+const fileinclude  = require('gulp-file-include');
 
 const $ = gulpLoadPlugins();
 const reload = browserSync.reload;
@@ -36,6 +37,16 @@ gulp.task('scripts', () => {
     .pipe(reload({stream: true}));
 });
 
+gulp.task('fileinclude', ()=> {
+  // 适配app中所有文件夹下的所有html，排除app下的include文件夹中html
+  return gulp.src(['app/**/*.html','!app/include/**.html'])
+      .pipe(fileinclude({
+        prefix: '@@',
+        basepath: '@file'
+      }))
+  .pipe(gulp.dest('.tmp')); //.tmp是serve 运行的目录
+});
+
 function lint(files) {
   return gulp.src(files)
     .pipe($.eslint({ fix: true }))
@@ -56,6 +67,10 @@ gulp.task('lint:test', () => {
 gulp.task('html', ['styles', 'scripts'], () => {
   return gulp.src('app/*.html')
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
     .pipe($.if(/\.js$/, $.uglify({compress: {drop_console: true}})))
     .pipe($.if(/\.css$/, $.cssnano({safe: true, autoprefixer: false})))
     .pipe($.if(/\.html$/, $.htmlmin({
@@ -95,10 +110,10 @@ gulp.task('extras', () => {
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 gulp.task('serve', () => {
-  runSequence(['clean', 'wiredep'], ['styles', 'scripts', 'fonts'], () => {
+  runSequence(['clean', 'wiredep'], ['fileinclude','styles','scripts', 'fonts'], () => {
     browserSync.init({
       notify: false,
-      port: 9000,
+      port: 9001,
       server: {
         baseDir: ['.tmp', 'app'],
         routes: {
@@ -109,6 +124,7 @@ gulp.task('serve', () => {
 
     gulp.watch([
       'app/*.html',
+      'app/**/*.html',
       'app/images/**/*',
       '.tmp/fonts/**/*'
     ]).on('change', reload);
@@ -123,7 +139,7 @@ gulp.task('serve', () => {
 gulp.task('serve:dist', ['default'], () => {
   browserSync.init({
     notify: false,
-    port: 9000,
+    port: 9001,
     server: {
       baseDir: ['dist']
     }
@@ -133,7 +149,7 @@ gulp.task('serve:dist', ['default'], () => {
 gulp.task('serve:test', ['scripts'], () => {
   browserSync.init({
     notify: false,
-    port: 9000,
+    port: 9001,
     ui: false,
     server: {
       baseDir: 'test',
@@ -176,3 +192,4 @@ gulp.task('default', () => {
     runSequence(['clean', 'wiredep'], 'build', resolve);
   });
 });
+
