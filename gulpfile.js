@@ -110,12 +110,12 @@ gulp.task('extras', () => {
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 gulp.task('serve', () => {
-  runSequence(['clean', 'wiredep'], ['fileinclude','styles','scripts', 'fonts'], () => {
+  runSequence(['clean', 'wiredep'], ['styles','scripts', 'fonts','fileinclude'], () => {
     browserSync.init({
       notify: false,
       port: 9001,
       server: {
-        baseDir: ['.tmp', 'app'],
+        baseDir: ['.tmp', 'app'], // 在 .tmp 目录下启动本地服务器环境，自动启动默认浏览器  
         routes: {
           '/bower_components': 'bower_components'
         }
@@ -126,13 +126,13 @@ gulp.task('serve', () => {
       'app/*.html',
       'app/images/**/*',
       '.tmp/fonts/**/*'
-    ]).on('change', reload);
+    ],['fileinclude']).on('change', reload);
 
     gulp.watch('app/styles/**/*.scss', ['styles']);
     gulp.watch('app/scripts/**/*.js', ['scripts']);
     gulp.watch('app/fonts/**/*', ['fonts']);
     gulp.watch('bower.json', ['wiredep', 'fonts']);
-    gulp.watch('app/**/*.html', ['html']);
+    gulp.watch('app/**/*.html', ['html','fileinclude']).on('change', reload);
   });
 });
 
